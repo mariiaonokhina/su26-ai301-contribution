@@ -9,7 +9,6 @@
 
 ## Why I Chose This Issue
 
-[1-2 paragraphs explaining why this issue interests you, how it matches your skills/learning goals, what you hope to learn]
 This issue interests me because it's an actual bug that affects user experience on the learning platform called Frappe Learning. The users are not able to delete their own questions after posting, which takes away control over their own content.
 
 I've worked on full-stack applications before with a similar tech stack to this project (Python, JavaScript, TypeScript, HTML), and I have an extensive experience creating scripts and games in Python, as well as interactive web apps with JavaScript. I'm hoping to learn more TypeScript, have the experience of working with Vue, and I would like to contribute to a larger open-source codebase.
