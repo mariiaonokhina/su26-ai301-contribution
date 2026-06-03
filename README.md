@@ -1,8 +1,11 @@
 # Contribution #1: Ability to delete one's question topics
 
 **Contribution Number:** 1
+
 **Student:** Mariia Onokhina
+
 **Issue:** https://github.com/frappe/lms/issues/908
+
 **Status:** Phase I Complete
 
 ---
