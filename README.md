@@ -97,10 +97,15 @@ Use the default credentials to log in:
 
 - **Commit showing reproduction:** https://github.com/mariiaonokhina/lms (follow the steps above to reproduce the issue).
 - **Screenshots/logs:**
+
 <img width="648" height="160" alt="IMG_8123" src="https://github.com/user-attachments/assets/d5625e93-d096-4fb9-b3b1-b4ad23953aaa" />
+
 <img width="817" height="472" alt="IMG_2628" src="https://github.com/user-attachments/assets/c56b32a0-acfe-4783-b6a0-322eb92e056e" />
+
 <img width="690" height="457" alt="IMG_8371" src="https://github.com/user-attachments/assets/6f9c8d8c-ff28-4c2c-b8c2-bc181f575bff" />
+
 <img width="699" height="346" alt="IMG_6668" src="https://github.com/user-attachments/assets/5a9963ff-44c7-408f-a73d-d128f8012ca3" />
+
 - **My findings:**
 You are able to delete the questions that you make, but a trace of them still shows up with the question topic and the username. So, the questions don't get fully deleted.
 
