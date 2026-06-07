@@ -6,7 +6,7 @@
 
 **Issue:** https://github.com/frappe/lms/issues/908
 
-**Status:** Phase I Complete
+**Status:** Phase II Complete
 
 ---
 
@@ -42,13 +42,61 @@ I've worked on full-stack applications before with a similar tech stack to this 
 
 ### Environment Setup
 
-[Notes on setting up your local development environment - challenges you faced, how you solved them]
+1. Fork the original repository (https://github.com/frappe/lms).
+2. In VS Code or another IDE of your choice, run `git clone <link-to-forked-repo>`.
+3. You need Docker, docker-compose and git setup on your machine. Refer to [Docker documentation](https://docs.docker.com/) for installation.
+4. Run `mkdir frappe-learning`, then `cd frappe-learning`.
+5. Download the docker-compose file by running `wget -O docker-compose.yml https://raw.githubusercontent.com/frappe/lms/develop/docker/docker-compose.yml`.
+6. Download the setup script by running `wget -O init.sh https://raw.githubusercontent.com/frappe/lms/develop/docker/init.sh`.
+7. Run the container and daemonize it by running `docker compose up -d`.
+8. Wait for a couple of minutes. The website should then be running locally at [http://localhost:8000/lms](http://localhost:8000/lms).
+
+Use the default credentials to log in:
+- Username: Administrator
+- Password: admin
 
 ### Steps to Reproduce
 
-1. [Step 1]
-2. [Step 2]
-3. [Observed result]
+1. Log in from the Administrator account (Administrator:admin).
+2. Go to Frappe Learning.
+3. Make sure that there is at least one course visible in "Courses" and that it is published.
+4. Add a test student to the course by running the following in the terminal:
+   ```python
+   docker exec lms-frappe-1 bash -lc "cd ~/frappe-bench && bench --site lms.localhost console <<'PYEOF'
+   import frappe
+   email = 'jane@example.com'
+   pwd = 'Maple-River-3381!'
+   if not frappe.db.exists('User', email):
+     u = frappe.get_doc({
+        'doctype': 'User',
+        'email': email,
+        'first_name': 'Jane',
+        'last_name': 'Doe',
+        'send_welcome_email': 0,
+        'enabled': 1,
+        'new_password': pwd,
+    }).insert(ignore_permissions=True)
+   else:
+    u = frappe.get_doc('User', email)
+    u.new_password = pwd
+    u.save(ignore_permissions=True)
+   if 'LMS Student' not in [r.role for r in u.roles]:
+    u.add_roles('LMS Student')
+   frappe.db.commit()
+   print('User:', email, '| Roles:', [r.role for r in u.roles])
+   PYEOF"
+   ```
+   This will create a user with the name Jane Doe, email jane@example.com and password Maple-River-3381!
+6. From the administrator's view, go to Courses -> Select any course available -> Dashboard -> + Enroll. Then, search for student with the email jane@example.com and add them.
+7. Log out from the administrator account and log in as a student (jane@example.com:Maple-River-3381!).
+8. Go to Courses -> Enroll into course -> Click on any available module in the course -> Community -> New Question. Set up a question with any topic and details.
+9. Click on the question you just created. Then, press on the three dots next to it and select "Delete".
+10. **IMPORTANT:** I think someone already fixed the issue but not completely. The question gets deleted but you should still be able to see the fact that the question was created and by whom (with empty topic and details), which it shouldn't be.
+
+<img width="648" height="160" alt="IMG_8123" src="https://github.com/user-attachments/assets/d5625e93-d096-4fb9-b3b1-b4ad23953aaa" />
+<img width="817" height="472" alt="IMG_2628" src="https://github.com/user-attachments/assets/c56b32a0-acfe-4783-b6a0-322eb92e056e" />
+<img width="690" height="457" alt="IMG_8371" src="https://github.com/user-attachments/assets/6f9c8d8c-ff28-4c2c-b8c2-bc181f575bff" />
+<img width="699" height="346" alt="IMG_6668" src="https://github.com/user-attachments/assets/5a9963ff-44c7-408f-a73d-d128f8012ca3" />
 
 ### Reproduction Evidence
 
