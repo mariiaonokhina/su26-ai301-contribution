@@ -115,30 +115,44 @@ You are able to delete the questions that you make, but a trace of them still sh
 
 ### Analysis
 
-[Your analysis of the root cause - what's causing the issue?]
+A "question" in the Community/Discussions feature is stored as two record types: a Discussion Topic (holding the title and owner) and one or more Discussion Reply records (the body and any follow-ups), linked to the topic via the reply's topic field. Creating a question in DiscussionModal.vue inserts a Discussion Topic followed by a first Discussion Reply.
+
+The current UI only offers deletion of individual replies. deleteReply() in DiscussionReplies.vue:220-232 calls frappe.client.delete on the Discussion Reply doctype and nothing else. There is no action that deletes the Discussion Topic itself (Discussions.vue renders topic rows with no menu).
+
+Root cause: Deleting a question's replies leaves the parent Discussion Topic record intact.
 
 ### Proposed Solution
 
-[High-level description of your fix approach]
+Add the ability for a topic's owner to delete the entire question topic, removing both the Discussion Topic and all of its child Discussion Reply records together. I'll implement a whitelisted backend method that validates ownership and deletes the replies and topic in one operation (avoiding orphaned replies), and wire it to an owner-gated Delete action in the UI.
 
 ### Implementation Plan
 
 Using UMPIRE framework (adapted):
 
-**Understand:** [Restate the problem]
+**Understand:** 
 
-**Match:** [What similar patterns/solutions exist in the codebase?]
+A user can delete the replies that make up their question, but the question's Discussion Topic is never deleted, so the question still shows in the list (empty title/body, author visible). The user should be able to fully delete a question topic they own, leaving no trace.
 
-**Plan:** [Step-by-step implementation plan]
-1. [Modify file X to do Y]
-2. [Add function Z]
-3. [Update tests]
+**Match:** 
+- Reply deletion is the closest existing pattern: an owner-gated <Dropdown> + frappe.client.delete + resource reload (DiscussionReplies.vue:29-51, 220-232).
+- Cascading topic+reply deletion already exists on the backend in lms/lms/api.py:1016-1026 (delete_batch_discussions uses frappe.db.delete("Discussion Topic", ...) and the replies) — a model for my whitelisted delete method.
+- Ownership data is already available client-side: get_discussion_topics() returns owner and name per topic, and $user is injected in both components.
 
-**Implement:** [Link to your branch/commits as you work]
+**Plan:** 
+1. Backend: add a whitelisted delete_discussion_topic(topic) in lms/lms/utils.py that (a) loads the topic, (b) checks frappe.session.user == topic.owner (or has delete perms) and throws otherwise, (c) deletes all Discussion Reply where topic == name, then (d) deletes the Discussion Topic. Single source of truth, no orphaned replies.
+2. Frontend: add an owner-gated Delete action for the topic — either a <Dropdown> on each topic row in Discussions.vue (with @click.stop so it doesn't trigger showReplies), or a menu in the thread header of DiscussionReplies.vue. Gate with user.data.name == topic.owner && !readOnlyMode.
+3. Add a deleteTopic(topic) handler that calls the new backend method, then topics.reload() (and returns to the topic list if called from the thread view). Show a toast on error, matching existing handlers.
+4. Optionally emit/listen on a socket event so other viewers' lists refresh, consistent with the existing new_discussion_topic / delete_message socket usage.
 
-**Review:** [Self-review checklist - does it follow the project's contribution guidelines?]
+**Implement:** [Link to your branch/commits as you work] Not implemented yet.
 
-**Evaluate:** [How will you verify it works?]
+**Review:** 
+1. Follow Contribution.md: feature branch + Conventional Commit messages (repo uses fix(...), test(...), style(...) — e.g. fix(discussions): allow owners to fully delete their question topics).
+2. Self-review checklist: ownership enforced on the backend (not just hidden in UI) so a non-owner can't delete via API; read-only mode respected; no orphaned replies remain; __() used for new strings; ruff formatting on Python, project formatting on Vue.
+
+**Evaluate:** 
+
+Log in as student1@example.com, create a question topic, confirm a Delete option now appears on it, delete it, and confirm it disappears from the list. Confirm a topic owned by another user shows no Delete option (security check).
 
 ---
 
